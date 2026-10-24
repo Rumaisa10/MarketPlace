@@ -25,7 +25,14 @@ export default async function getProducts() : Promise<Product[]> {
 }
 export async function getProductDetails(id:number) : Promise<ProductDetail> {
     const res = await fetch(`https://dummyjson.com/products/${id}`)  
-    console.log(res)
     if(!res.ok) throw new Error('Failed to fecth details')
     return res.json()
+}
+
+export async function  searchProducts(q:string) : Promise<Product[]>{
+    const res = await fetch(`https://dummyjson.com/products/search?q=${encodeURIComponent(q)}`)  
+    if(!res.ok) throw new Error('Failed to fecth Product')
+    const data : {products : Product[]} = await res.json()
+      return data.products
+      
 }
