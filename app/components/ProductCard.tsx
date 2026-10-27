@@ -1,10 +1,12 @@
 import Image from "next/image";
 import type {Product} from '@/libs/products'
 import Link from "next/link";
+import FavouriteButton from "./FavouriteButton";
 export default function ProductCard({ product }: { product: Product }) {
   return (
+     <article className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md">
     <Link href={`/products/${product.id}`}>
-    <article className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md">
+    
       <div className="relative aspect-square bg-gray-100">
         
         <Image
@@ -24,7 +26,12 @@ export default function ProductCard({ product }: { product: Product }) {
           £{product.price.toFixed(2)}
         </p>
       </div>
+       </Link>
+
+      <div className="absolute right-2 top-2">
+        <FavouriteButton productId={product.id} />
+      </div>
     </article>
-    </Link>
+   
   );
 }

@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 
 
 export default function Filters({categories}: {categories : string[]}) {
-     const router = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
