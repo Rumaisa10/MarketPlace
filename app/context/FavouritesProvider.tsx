@@ -1,13 +1,18 @@
+// app/context/FavouritesProvider.tsx
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-
-const STORAGE_KEY = "marketplace:favourites";
+import { createContext, useContext, useRef, useState } from "react";
+import useStoredFavourites from "../hooks/useStoredFavourite";
+import { saveFavourite } from "@/libs/favouritesApi";
 
 type FavouritesContextValue = {
+  loaded: boolean;
   isFavourite: (id: number) => boolean;
   toggleFavourite: (id: number) => void;
 };
+const [error, setError] = useState<string | null>(null);
+const pending = useRef<Set<number>>(new Set());
+
 
 const FavouritesContext = createContext<FavouritesContextValue | null>(null);
 
@@ -18,47 +23,33 @@ export function useFavourites() {
 }
 
 export default function FavouritesProvider({ children }: { children: React.ReactNode }) {
-  const [ids, setIds] = useState<number[]>([]);
-  const [loaded,setLoaded] = useState(false)
+  const { ids, setIds, loaded } = useStoredFavourites();
 
-  useEffect(()=>{
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if(raw)
-      {
-        const parsed : unknown =JSON.parse(raw)
-        if(Array.isArray(parsed) && parsed.every((x)=>typeof x === 'number'))
-        {
-          setIds(parsed)
-        }
-      }
-     
-    }
-     catch {
-        
-      }
-     setLoaded(true)
-  },[])
-
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    } catch {
-      // storage full or blocked: ignore
-    }
-  }, [ids, loaded]);
   const isFavourite = (id: number) => ids.includes(id);
 
-  const toggleFavourite = (id: number) => {
-    setIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
+  const toggleFavourite = async (id: number) => {
+    if(pending.current.has(id)) return 
+    pending.current.add(id);
+     setError(null);
+     
+      const on = !ids.includes(id);   
+    setIds((prev) =>                             
+    on ? [...prev, id] : prev.filter((x) => x !== id)
+  );
 
-      
+  try {
+    await saveFavourite(id, on);                
+  } catch {
+    setIds((prev) =>                        
+      on ? prev.filter((x) => x !== id) : prev.includes(id) ? prev : [...prev, id]
+    );
+    setError("Couldn't update favourites. Try again.");
+  } finally {
+    pending.current.delete(id);               
+  }
+
   return (
-    <FavouritesContext.Provider value={{ isFavourite, toggleFavourite }}>
+    <FavouritesContext.Provider value={{ loaded, isFavourite, toggleFavourite }}>
       {children}
     </FavouritesContext.Provider>
   );
