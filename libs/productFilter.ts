@@ -26,4 +26,8 @@ export function paginate(products: Product[], page: number) {
     currentPage,
     totalPages,
   };
-}   
+}  
+
+// libs/categories.ts
+export const CATEGORIES = ["beauty", "fragrances", "furniture", "groceries", "home-decoration", "kitchen-accessories" , "sunglasses" ,"womens-bags" ] as const;
+export type Category = (typeof CATEGORIES)[number];

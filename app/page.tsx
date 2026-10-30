@@ -5,6 +5,7 @@ import SearchBox from './components/SearchBox'
 import filterByCategory, { paginate, sortProduct } from '@/libs/productFilter'
 import Filters from './components/Filters'
 import Pagination from './components/Pagination'
+import FavouriteList from './components/FavouriteList'
 
 
 export default async function HomePage({
@@ -52,6 +53,8 @@ export default async function HomePage({
         totalPages={totalPages}
         params={{ q: query, category, sort }}
       />
+      
     </main>
+    
   );
 }

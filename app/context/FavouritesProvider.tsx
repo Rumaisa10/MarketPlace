@@ -9,9 +9,8 @@ type FavouritesContextValue = {
   loaded: boolean;
   isFavourite: (id: number) => boolean;
   toggleFavourite: (id: number) => void;
+  ids: number[]
 };
-const [error, setError] = useState<string | null>(null);
-const pending = useRef<Set<number>>(new Set());
 
 
 const FavouritesContext = createContext<FavouritesContextValue | null>(null);
@@ -24,6 +23,8 @@ export function useFavourites() {
 
 export default function FavouritesProvider({ children }: { children: React.ReactNode }) {
   const { ids, setIds, loaded } = useStoredFavourites();
+   const [error, setError] = useState<string | null>(null);
+   const pending = useRef<Set<number>>(new Set());
 
   const isFavourite = (id: number) => ids.includes(id);
 
@@ -47,9 +48,9 @@ export default function FavouritesProvider({ children }: { children: React.React
   } finally {
     pending.current.delete(id);               
   }
-
+  }
   return (
-    <FavouritesContext.Provider value={{ loaded, isFavourite, toggleFavourite }}>
+    <FavouritesContext.Provider value={{ ids, loaded, isFavourite, toggleFavourite }}>
       {children}
     </FavouritesContext.Provider>
   );
