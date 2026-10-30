@@ -2,6 +2,7 @@ import Image from "next/image";
 import type {Product} from '@/libs/products'
 import Link from "next/link";
 import FavouriteButton from "./FavouriteButton";
+import AddToCartButton from "./AddToCartButton";
 export default function ProductCard({ product }: { product: Product }) {
   return (
      <article className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md">
@@ -30,6 +31,9 @@ export default function ProductCard({ product }: { product: Product }) {
 
       <div className="absolute right-2 top-2">
         <FavouriteButton productId={product.id} />
+      </div>
+      <div className="px-3 pb-3">
+        <AddToCartButton productId={product.id} />
       </div>
     </article>
    
