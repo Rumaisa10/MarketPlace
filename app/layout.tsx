@@ -4,6 +4,8 @@ import "./globals.css";
 import FavouritesProvider from "./context/FavouritesProvider";
 import CartProvider from "./context/CartProvider";
 import { connectDB } from "@/libs/db";
+import Navbar from "./components/Navbar";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -20,16 +22,21 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  await connectDB()
+  await connectDB();
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <FavouritesProvider> <CartProvider>{children}</CartProvider></FavouritesProvider>
-       
-        </body>
+        <FavouritesProvider>
+          {" "}
+          <CartProvider>
+            {" "}
+            <Navbar/>{children}
+          </CartProvider>
+        </FavouritesProvider>
+      </body>
     </html>
   );
 }
