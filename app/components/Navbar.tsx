@@ -16,7 +16,7 @@ export default async function Navbar() {
         <Link href="/cart" className="hover:text-blue-600">Cart</Link>
         {session && (
           <>
-            <Link href="/sell" className="hover:text-blue-600">Sell</Link>
+            <Link href="/sellForm" className="hover:text-blue-600">Sell</Link>
             <Link href="/my-listings" className="hover:text-blue-600">My listings</Link>
           </>
         )}
