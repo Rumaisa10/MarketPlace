@@ -5,7 +5,9 @@ import SearchBox from './components/SearchBox'
 import filterByCategory, { paginate, sortProduct } from '@/libs/productFilter'
 import Filters from './components/Filters'
 import Pagination from './components/Pagination'
-import FavouriteList from './components/FavouriteList'
+//import FavouriteList from './components/FavouriteList'
+import ListingCard from './components/ListingCard'
+import { getListings } from '@/libs/listings'
 
 
 export default async function HomePage({
@@ -27,6 +29,12 @@ export default async function HomePage({
     Number.isNaN(requestedPage) ? 1 : requestedPage
   );
 
+  let listings: Awaited<ReturnType<typeof getListings>> = [];
+try {
+  listings = await getListings();
+} catch (err) {
+  console.error("Couldn't load listings:", err);
+}
   return (
     <main className="mx-auto max-w-6xl p-4">
       <h1 className="mb-4 text-2xl font-semibold">Marketplace</h1>
@@ -47,7 +55,18 @@ export default async function HomePage({
           ))}
         </ul>
       )}
-
+{listings.length > 0 && (
+  <section className="mb-8">
+    <h2 className="mb-3 text-xl font-semibold">Community listings</h2>
+    <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+      {listings.map((l) => (
+        <li key={l.id}>
+          <ListingCard listing={l} />
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
