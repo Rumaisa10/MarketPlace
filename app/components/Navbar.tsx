@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import LogoutButton from "./LogoutButton";
-
 export default async function Navbar() {
   const session = await auth();
 

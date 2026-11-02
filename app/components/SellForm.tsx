@@ -2,8 +2,9 @@
 import { validateSellForm } from "@/libs/validateListing";
 import { ValidationErrors } from "@/libs/validateListing";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CATEGORIES } from "@/libs/productFilter";
-import { addListing } from "@/libs/listingStorage";
+
 export type SellFormData = {
   title: string;
   description: string;
@@ -11,16 +12,24 @@ export type SellFormData = {
   category: string;
   stock: number;
 };
+
+const emptyForm: SellFormData = {
+  title: "",
+  description: "",
+  price: 0,
+  category: "",
+  stock: 0,
+};
+
 const labelClass = "mb-1 block text-sm font-medium text-gray-900";
+
 export default function SellForm() {
+  const router = useRouter();
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [form, setForm] = useState<SellFormData>({
-    title: "",
-    description: "",
-    price: 0,
-    category: "",
-    stock: 0,
-  });
+  const [form, setForm] = useState<SellFormData>(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   function handleChange(
     e: React.ChangeEvent<
@@ -33,17 +42,51 @@ export default function SellForm() {
       [name]: name === "price" || name === "stock" ? Number(value) : value,
     }));
   }
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFormError(null);
+    setSuccess(false);
+
     const validationErrors = validateSellForm(form);
     setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
 
-    if (Object.keys(validationErrors).length > 0) {
-      return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (res.ok) {
+        setSuccess(true);
+        setForm(emptyForm);
+        setErrors({});
+        return;
+      }
+
+      if (Array.isArray(data.errors)) {
+        const mapped: ValidationErrors = {};
+        for (const err of data.errors) {
+          mapped[err.field as keyof SellFormData] = err.message;
+        }
+        setErrors(mapped);
+      } else {
+        setFormError(data.error ?? "Something went wrong.");
+      }
+    } catch {
+      setFormError("Couldn't reach the server. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    console.log("Product submitted:", form);
-    addListing(form);
   }
 
   return (
@@ -65,7 +108,7 @@ export default function SellForm() {
           onChange={handleChange}
           className="border-2"
         />
-        {errors.title && <p>{errors.title}</p>}
+        {errors.title && <p role="alert">{errors.title}</p>}
 
         <label htmlFor="description" className={labelClass}>
           Description
@@ -77,7 +120,7 @@ export default function SellForm() {
           className="border-2"
           onChange={handleChange}
         />
-        {errors.description && <p>{errors.description}</p>}
+        {errors.description && <p role="alert">{errors.description}</p>}
 
         <label htmlFor="price" className={labelClass}>
           Price (£)
@@ -86,13 +129,13 @@ export default function SellForm() {
           id="price"
           name="price"
           type="number"
-          min="0.01"
-          step="0.01"
+          min="1"
+          step="1"
           value={form.price || ""}
           className="border-2"
           onChange={handleChange}
         />
-        {errors.price && <p>{errors.price}</p>}
+        {errors.price && <p role="alert">{errors.price}</p>}
 
         <label htmlFor="category" className={labelClass}>
           Category
@@ -111,7 +154,7 @@ export default function SellForm() {
             </option>
           ))}
         </select>
-        {errors.category && <p>{errors.category}</p>}
+        {errors.category && <p role="alert">{errors.category}</p>}
 
         <label htmlFor="stock" className={labelClass}>
           Stock Quantity
@@ -126,13 +169,17 @@ export default function SellForm() {
           className="border-2"
           onChange={handleChange}
         />
-        {errors.stock && <p>{errors.stock}</p>}
+        {errors.stock && <p role="alert">{errors.stock}</p>}
+
+        {formError && <p role="alert">{formError}</p>}
+        {success && <p role="status">Listing saved.</p>}
 
         <button
           type="submit"
+          disabled={submitting}
           className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
         >
-          List Product
+          {submitting ? "Saving..." : "List Product"}
         </button>
       </form>
     </div>
