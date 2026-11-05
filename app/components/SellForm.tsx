@@ -22,11 +22,16 @@ const emptyForm: SellFormData = {
 };
 
 const labelClass = "mb-1 block text-sm font-medium text-gray-900";
-
-export default function SellForm() {
+type Props = {
+  listingId?: string;         
+  initialValues?: SellFormData;
+};
+export default function SellForm({ listingId, initialValues }: Props) {
   const router = useRouter();
+  const isEdit = Boolean(listingId);
+  
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [form, setForm] = useState<SellFormData>(emptyForm);
+  const [form, setForm] = useState<SellFormData>(initialValues ?? emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -54,8 +59,11 @@ export default function SellForm() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/auth/listings", {
-        method: "POST",
+       const url = isEdit ? `/api/listings/${listingId}` : "/api/auth/listings";
+      const method = isEdit ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
@@ -67,10 +75,15 @@ export default function SellForm() {
       }
 
       if (res.ok) {
-        setSuccess(true);
-        setForm(emptyForm);
-        setErrors({});
-        return;
+        if (isEdit) {
+          router.push(`/listings/${listingId}`);
+          router.refresh();
+        } else {
+          setSuccess(true);
+          setForm(emptyForm);
+          setErrors({});
+        }
+        return
       }
 
       if (Array.isArray(data.errors)) {
@@ -96,7 +109,9 @@ export default function SellForm() {
         noValidate
         className="space-y-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
       >
-        <h2 className="text-2xl font-semibold text-gray-900">Sell a Product</h2>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          {isEdit ? "Edit listing" : "Sell a Product"}
+        </h2>
 
         <label htmlFor="title" className={labelClass}>
           Product Title
@@ -179,7 +194,7 @@ export default function SellForm() {
           disabled={submitting}
           className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
         >
-          {submitting ? "Saving..." : "List Product"}
+          {submitting ? "Saving..." : isEdit ? "Save changes" : "List Product"}
         </button>
       </form>
     </div>
