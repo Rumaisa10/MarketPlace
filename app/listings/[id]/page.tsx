@@ -5,6 +5,8 @@ import { connectDB } from "@/libs/db";
 import { Product as ListingModel } from "@/models/Product";
 import { auth } from "@/auth";
 import DeleteListingButton from "@/app/components/DeleteListingButton";
+import Link from "next/link";
+
 
 export default async function ListingPage({
   params,
@@ -38,6 +40,7 @@ const isOwner =
       {isOwner && (
         <DeleteListingButton id={String(listing._id)} />
       )}
+     <Link href={`/listings/${listing._id}/edit`}>Edit</Link>
     </div>
 
     <p className="my-4 text-2xl font-bold text-gray-900">
